@@ -5,7 +5,7 @@ from sdcard import SDCard
 from rtdt import DS1307
 
 import ledbutton as lb
-import batlelogger as bl
+import battlelogger as bl
 
 
 led = lb.Led(4, leds_count=25)

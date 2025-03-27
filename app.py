@@ -7,6 +7,6 @@ import logging
 
 
 import ledbutton as lb
-import batlelogger as bl
+import battlelogger as bl
 
 

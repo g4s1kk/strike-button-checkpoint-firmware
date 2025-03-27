@@ -7,19 +7,19 @@ import copyhelpers as cp_helper
 
 
 class LogRecord:
-    fmt = "{dttm}|{device_id}|{fraction_id}|{event}"
+    fmt = "{dttm}|{device_id}|{faction_id}|{event}"
 
-    def set(self, device_id, fraction_id, event, dttm):
+    def set(self, device_id, faction_id, event, dttm):
         self.device_id = device_id
-        self.fraction_id = fraction_id
+        self.faction_id = faction_id
         self.event = event
         self.dttm = dttm
-    
+
     def __str__(self):
         return self.fmt.format(
             dttm=self.dttm.isoformat(),
             device_id=self.device_id,
-            fraction_id=self.fraction_id,
+            faction_id=self.faction_id,
             event=self.event
         )
 
@@ -45,10 +45,10 @@ class BattleLogger:
         self.data_folder = data_folder
         self.device_id = device_id
         self.debug = debug
-        
+
         self.record = LogRecord()
         self.metastore = os.path.join(self.data_folder, "metastore")
-        
+
         if not os.path.exists(self.data_folder):
             os.mkdir(self.data_folder)
         if (
@@ -81,7 +81,7 @@ class BattleLogger:
             json.dump(battle_log_metadata, f)
         self.log("system", "Battle log started")
         self.save_backup()
-        
+
     @staticmethod
     def check_file_not_empty(path):
         with open(path, "rb") as f:
@@ -93,36 +93,36 @@ class BattleLogger:
             return dt.datetime.now(tz=self.tzinfo)
         else:
             return self.rtc_instance.datetime
-        
+
     def get_log_filename(self):
         return f"round_{self.round_id}__ts_{int(self.round_start_dttm.timestamp())}"
-        
+
     def write_to_stdout(self, record):
         try:
             sys.stdout.write(str(record) + self.line_terminator)
         except:
             if hasattr(sys.stdout, "flush"):
                 sys.stdout.flush()
-                
+
     def write(self, record):
         with open(self.round_log_path, self.mode, encoding=self.encoding) as f:
             f.write(str(record) + self.line_terminator)
-        
+
     def emit(self, record):
         if self.debug:
             self.write_to_stdout(record)
         self.write(record)
 
-    def log(self, fraction_id, event):
+    def log(self, faction_id, event):
         self.record.set(
             device_id=self.device_id,
             dttm=self.get_dttm(),
-            fraction_id=fraction_id,
+            faction_id=faction_id,
             event=event
-            
+
         )
         self.emit(self.record)
-            
+
     def save_backup(self):
         self.last_backup_dttm = self.get_dttm()
         if self.backups_storage is not None:
@@ -136,7 +136,7 @@ class BattleLogger:
             bk_log = os.path.join(backup_folder, self.get_log_filename())
             cp_helper.copy_file(self.metastore, bk_metastore)
             cp_helper.copy_file(self.round_log_path, bk_log)
-        
+
     def end(self):
         self.log("system", "Battle log finished")
         self.save_backup()

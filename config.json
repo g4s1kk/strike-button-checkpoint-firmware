@@ -4,6 +4,7 @@
         "ORANGE": 16,
         "PINK": 17
     },
+    "NEUTRAL_COLOR": "WHITE",
     "GAME_START_DTTM": "2025-03-26 12:00:00",
     "GAME_END_DTTM": "2025-03-26 18:00:00",
     "TZ_OFFSET_HOURS": 3,
