@@ -5,7 +5,7 @@ import shutil
 def copy_file(source, dest, bytes_mode=False):
     read_mode = "rb" if bytes_mode else "r"
     write_mode = "wb" if bytes_mode else "w"
-    with open(sorce, read_mode) as s:
+    with open(source, read_mode) as s:
         with open(dest, write_mode) as d:
             shutil.copyfileobj(s, d)
 

@@ -1,8 +1,4 @@
-
-
 import logging
-
-from ledbutton import CNAMES as colors
 
 import config as cfg
 import helpers
