@@ -2,7 +2,7 @@ from machine import RTC, Timer
 import network
 
 import ledbutton
-import battlelogger
+import libs.battlelogger as battlelogger
 
 import config as cfg
 
