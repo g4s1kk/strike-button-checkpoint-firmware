@@ -48,7 +48,11 @@ class SingleLed:
 class Button:
     def __init__(self, pin_num, color=None):
         self._pin_num = pin_num
-        self.p = Pin(pin_num, Pin.IN)
+        self.p = Pin(
+            pin_num,
+            mode=Pin.IN,
+            pull=Pin.PULL_DOWN
+        )
         self.p.off()
         self.color = color
 

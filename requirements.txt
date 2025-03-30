@@ -1,4 +1,4 @@
-os.path
+os-path
 logging
 shutil
 sdcard

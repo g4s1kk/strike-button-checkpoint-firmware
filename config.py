@@ -10,7 +10,7 @@ from boot import STORAGE_PATH, ext_rtc
 
 
 machine_rtc = RTC()
-machine_rtc.datetime(ext_rtc.timetuple()) # sync machine RTC for correct logging.logger timestamps
+machine_rtc.datetime(ext_rtc.datetime.timetuple()) # sync machine RTC for correct logging.logger timestamps
 
 
 LEDS_PAD_PIN = 4
@@ -31,10 +31,10 @@ DEFAULTS = {
     "PASSWORD": "12345678"
 }
 
-EXT_CFG_FILENAME = "config.py"
+EXT_CFG_FILENAME = "config.json"
 LOG_FILENAME = "app.log"
 BATTLELOG_FILE = "/battle.log"
-BATTLELOG_BACKUP_PERIOD = 600*1000 # 600 sec = 600000 millisec
+BATTLELOG_BACKUP_PERIOD = 600 # 600 sec
 
 
 external_cfg_path = os.path.join(STORAGE_PATH, EXT_CFG_FILENAME)
@@ -62,7 +62,7 @@ game_end_dttm = dt.datetime.fromisoformat(GAME_END_DTTM).astimezone(game_timezon
 
 # configure logger
 logger = logging.getLogger(DEVICE_ID)
-logger.setLevel("INFO")
+logger.setLevel(logging.INFO)
 
 formatter = logging.Formatter(
     "%(asctime)s-%(levelname)s-%(name)s:: %(message)s"
@@ -71,6 +71,10 @@ for log_file in [INT_LOG_FILE, EXT_LOG_FILE]:
     handler = logging.FileHandler(filename=log_file)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    
+debug_handler = logging.StreamHandler()
+debug_handler.setFormatter(formatter)
+logger.addHandler(debug_handler)
 
 logger.info("App cfg initialized.")
 

@@ -2,24 +2,25 @@ from machine import RTC, Timer
 import network
 
 import ledbutton
-import libs.battlelogger as battlelogger
+import battlelogger as battlelogger
 
 import config as cfg
 
 
 def sync_machine_time():
     machine_rtc = RTC()
-    machine_rtc.datetime(cfg.rtc_instance.timetuple())
+    machine_rtc.datetime(cfg.ext_rtc.datetime.timetuple())
+    cfg.logger.info("Machine time syncronized.")
 
 
 def make_wlan():
     station = network.WLAN(network.AP_IF)
+    station.active(True)
     station.config(
         essid=cfg.SSID,
         password=cfg.PASSWORD,
         authmode=network.AUTH_WPA2_PSK
     )
-    station.active(True)
     cfg.logger.info(f"WLAN created: {station.ifconfig()[0]}")
 
 
@@ -52,10 +53,12 @@ def init_battlelogger():
 
 def check_game_start():
     current_dttm = cfg.ext_rtc.datetime
+    return current_dttm >= cfg.game_start_dttm
 
 
 def check_game_end():
     current_dttm = cfg.ext_rtc.datetime
+    return current_dttm >= cfg.game_end_dttm
 
 
 class PeriodicExecutor:
@@ -63,8 +66,10 @@ class PeriodicExecutor:
         self._period = period_seconds * 1000 # convert to milliseconds
         self._timer = Timer(timer_id)
         self.set_alarm_off()
+        self.logger = cfg.logger
+        self._id = timer_id
 
-    def set_alarm_on(self):
+    def set_alarm_on(self, t):
         self._alarm = 1
 
     def set_alarm_off(self):
@@ -76,18 +81,23 @@ class PeriodicExecutor:
             mode=Timer.PERIODIC,
             callback=self.set_alarm_on
         )
+        self.logger.info(f"Machine timer {self._id} started with period: {self._period}")
         return self
 
     def execute_if_alarm(self, *executables):
         if self._alarm == 1:
-            self.set_alarm_off()
             results = list()
+            self.set_alarm_off()
             for executable in executables:
+                self.logger.info(f"Machine timer {self._id} execute callable: {executable.__name__}")
                 results.append(
                     executable()
                 )
             return results
 
+        return [None for _ in executables]
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._timer.deinit()
+        self.logger.info(f"Machine timer {self._id} stopped")
         return False
