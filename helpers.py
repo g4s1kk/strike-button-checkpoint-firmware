@@ -8,8 +8,13 @@ import config as cfg
 
 
 def sync_machine_time():
-    machine_rtc = RTC()
-    machine_rtc.datetime(cfg.ext_rtc.datetime.timetuple())
+    machine_rtc = cfg.machine_rtc
+    ext_rtc_dttm = cfg.ext_rtc.datetime
+    weekday = ext_rtc_dttm.isoweekday()
+    Y, M, D, h, m, s, us, tz, fl = ext_rtc_dttm.tuple()
+    machine_rtc.datetime((
+        Y, M, D, weekday, h, m, s, us
+    ))
     cfg.logger.info("Machine time syncronized.")
 
 
@@ -24,11 +29,18 @@ def make_wlan():
     cfg.logger.info(f"WLAN created: {station.ifconfig()[0]}")
 
 
-def attach_buttons():
-    buttons = ledbutton.ButtonPad()
+def attach_buttons(debounce_timer):
+    button_pad = ledbutton.ButtonPad(
+        use_internal_resistor=False,
+        debounce_timer=debounce_timer,
+        debounce_period_ms=cfg.BUTTONS_DEBOUNCE_INTERVAL_MS
+    )
     for color, pin in cfg.BUTTONS.items():
-        buttons.add_button(pin, color)
-    return buttons
+        button_pad.add_button(
+            pin=pin,
+            color=color
+        )
+    return button_pad
 
 
 def attach_led():

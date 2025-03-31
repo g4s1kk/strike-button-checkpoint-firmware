@@ -10,11 +10,11 @@ from boot import STORAGE_PATH, ext_rtc
 
 
 machine_rtc = RTC()
-machine_rtc.datetime(ext_rtc.datetime.timetuple()) # sync machine RTC for correct logging.logger timestamps
-
 
 LEDS_PAD_PIN = 4
 LEDS_COUNT = 25
+BUTTONS_DEBOUNCE_TIMER_ID = 3
+BUTTONS_DEBOUNCE_INTERVAL_MS = 10
 
 
 DEFAULTS = {
@@ -75,6 +75,3 @@ for log_file in [INT_LOG_FILE, EXT_LOG_FILE]:
 debug_handler = logging.StreamHandler()
 debug_handler.setFormatter(formatter)
 logger.addHandler(debug_handler)
-
-logger.info("App cfg initialized.")
-
