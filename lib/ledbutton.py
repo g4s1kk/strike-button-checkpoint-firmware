@@ -128,9 +128,13 @@ class ButtonPad:
                 return
 
     @property
-    def color(self):
+    def rgb_color(self):
         if self._cname is not None:
             return self._colors[self._cname]
+        
+    @property
+    def color_name(self):
+        return self._cname
 
     def __getattr__(self, cname):
         try:

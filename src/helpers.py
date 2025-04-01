@@ -4,7 +4,7 @@ import network
 import ledbutton
 import battlelogger as battlelogger
 
-import config as cfg
+from src.config import config as cfg
 
 
 def sync_machine_time():
@@ -113,3 +113,11 @@ class PeriodicExecutor:
         self._timer.deinit()
         self.logger.info(f"Machine timer {self._id} stopped")
         return False
+
+
+async def do_periodical_job(battle_logger):
+    with PeriodicExecutor(period_seconds=600, timer_id=0) as cron:
+        cron.execute_if_alarm(
+            sync_machine_time,
+            battle_logger.save_backup
+        )
