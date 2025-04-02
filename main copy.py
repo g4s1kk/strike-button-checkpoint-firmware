@@ -8,6 +8,7 @@ import logging
 import src.app as app
 import src.helpers as helpers
 from src.config import config as cfg
+import src.webconf as webconf
 from src.webserver import web_server
 
 
@@ -29,8 +30,8 @@ async def main(
     checkpoint_app.checkpoint_run_task = asyncio.create_task(checkpoint_app.run())
     ws = asyncio.create_task(
         web_server.start_server(
-            host=cfg.BACKEND_IP_ADDR,
-            port=cfg.WEB_PORT
+            host=webconf.BACKEND_IP_ADDR,
+            port=webconf.WEB_PORT
         )
     )
     repl = asyncio.create_task(aiorepl.task())

@@ -2,11 +2,11 @@ import flet as ft
 import json
 import websockets
 
-from src.config import config as cfg
+import src.webconf as webconf
 
 
-WS_ADDR = f"ws://{cfg.BACKEND_IP_ADDR}:{cfg.WEB_PORT}/ws"
-LOG_DOWNLOAD_ADDR = f"http://{cfg.BACKEND_IP_ADDR}:{cfg.WEB_PORT}/{cfg.WEB_DOWNLOAD_LOG_ENDPOINT}"
+WS_ADDR = f"ws://{webconf.BACKEND_IP_ADDR}:{webconf.WEB_PORT}/ws"
+LOG_DOWNLOAD_ADDR = f"http://{webconf.BACKEND_IP_ADDR}:{webconf.WEB_PORT}/{webconf.WEB_DOWNLOAD_LOG_ENDPOINT}"
 
 
 def main(page: ft.Page):
@@ -84,4 +84,4 @@ def main(page: ft.Page):
     )
 
 # Собираем фронт в HTML (для Microdot)
-ft.app(target=main, view=None, port=cfg.WEB_PORT, export_path=cfg.WEB_MAIN_PATH)
+ft.app(target=main, view=None, port=webconf.WEB_PORT, export_path=webconf.WEB_MAIN_PATH)

@@ -1,3 +1,4 @@
 .vscode/
 .venv/
 pymakr.conf
+__pycache__/

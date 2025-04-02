@@ -1,0 +1,10 @@
+import os.path
+
+
+WEB_STATIC_FOLDER = "/static"
+WEB_MAIN_FILE = "index.html"
+WEB_PORT = 8000
+WEB_DOWNLOAD_LOG_ENDPOINT = "battle_log"
+BACKEND_IP_ADDR = "192.168.0.10"
+
+WEB_MAIN_PATH = os.path.join(WEB_STATIC_FOLDER, WEB_MAIN_FILE)

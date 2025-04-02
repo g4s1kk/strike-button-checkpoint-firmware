@@ -8,6 +8,7 @@ from microdot import Microdot, send_file
 from microdot.websocket import with_websocket
 
 from src.config import config, Config
+import src.webconf as webconf
 
 
 class WebServer(Microdot):
@@ -50,7 +51,7 @@ web_server.add_cfg_link(config)
 def send_index(request):
     self = request.app
     return send_file(
-        self.cfg.WEB_MAIN_PATH
+        webconf.WEB_MAIN_PATH
     )
 
 
@@ -59,14 +60,14 @@ def send_assets(request, path):
     self = request.app
     return send_file(
         os.path.join(
-            self.cfg.WEB_STATIC_FOLDER,
+            webconf.WEB_STATIC_FOLDER,
             "assets",
             path
         )
     )
 
 
-@web_server.get(f"/{config.WEB_DOWNLOAD_LOG_ENDPOINT}")
+@web_server.get(f"/{webconf.WEB_DOWNLOAD_LOG_ENDPOINT}")
 def download_battle_log(request):
     self = request.app
     return send_file(

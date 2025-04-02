@@ -33,17 +33,11 @@ class Config:
     BATTLELOG_FILE = "/battle.log"
     BATTLELOG_BACKUP_PERIOD = 600 # 600 sec
     APP_ROOT_PATH = "/"
-    WEB_STATIC_FOLDER = "/static"
-    WEB_MAIN_FILE = "index.html"
-    WEB_PORT = 8000
-    WEB_DOWNLOAD_LOG_ENDPOINT = "battle_log"
-    BACKEND_IP_ADDR = "192.168.0.10"
 
     LOG_LEVEL = logging.INFO
     DEBUG = True
 
     def __init__(self, storage_path:str, ext_rtc:DS1307):
-        self.WEB_MAIN_PATH = os.path.join(self.WEB_STATIC_FOLDER, self.WEB_MAIN_FILE)
         self.STORAGE_PATH = storage_path
         self.ext_rtc = ext_rtc
         self.machine_rtc = RTC()
