@@ -1,4 +1,5 @@
-from machine import RTC, Timer
+import asyncio
+from machine import Timer
 import network
 
 import ledbutton
@@ -7,7 +8,7 @@ import battlelogger as battlelogger
 from src.config import config as cfg
 
 
-def sync_machine_time():
+def sync_machine_time(cfg=cfg):
     machine_rtc = cfg.machine_rtc
     ext_rtc_dttm = cfg.ext_rtc.datetime
     weekday = ext_rtc_dttm.isoweekday()
@@ -16,6 +17,12 @@ def sync_machine_time():
         Y, M, D, weekday, h, m, s, us
     ))
     cfg.logger.info("Machine time syncronized.")
+
+
+async def periodical_sync_machine_time():
+    while True:
+        sync_machine_time()
+        asyncio.sleep(600)
 
 
 def make_wlan():
@@ -27,6 +34,7 @@ def make_wlan():
         authmode=network.AUTH_WPA2_PSK
     )
     cfg.logger.info(f"WLAN created: {station.ifconfig()[0]}")
+    return station
 
 
 def attach_buttons(debounce_timer):
@@ -113,11 +121,3 @@ class PeriodicExecutor:
         self._timer.deinit()
         self.logger.info(f"Machine timer {self._id} stopped")
         return False
-
-
-async def do_periodical_job(battle_logger):
-    with PeriodicExecutor(period_seconds=600, timer_id=0) as cron:
-        cron.execute_if_alarm(
-            sync_machine_time,
-            battle_logger.save_backup
-        )

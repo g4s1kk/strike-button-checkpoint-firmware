@@ -2,7 +2,6 @@ from machine import Timer
 
 import asyncio
 import logging
-from battlelogger import BattleLogger
 
 from src.config import config as cfg
 import src.helpers as helpers
@@ -12,13 +11,15 @@ class CheckpointApp:
     def __init__(
             self,
             debounce_timer:Timer,
-            battle_logger:BattleLogger,
+            cfg=cfg
         ):
+        self.cfg = cfg
         self.logger = logging.getLogger(cfg.DEVICE_ID)
         self.debounce_timer = debounce_timer
+        self.battle_logger = None
         self.setup_hardware()
         self.led_panel.on()
-        self.color = self.button_pad._cname
+        self.color = None
         self.logger.info(f"Button pad initial state: {self.color}")
         self.game_start = False
         self.game_end = False
@@ -41,7 +42,7 @@ class CheckpointApp:
             if helpers.check_game_start():
                 self.game_start = True
                 break
-            await asyncio.sleep(15)
+            await asyncio.sleep(20)
         return self.game_start
 
     async def wait_game_end(self):
@@ -49,7 +50,7 @@ class CheckpointApp:
             if helpers.check_game_end():
                 self.game_end = True
                 break
-            await asyncio.sleep(15)
+            await asyncio.sleep(20)
         return self.game_end
     
     def refresh_color(self):
@@ -63,17 +64,30 @@ class CheckpointApp:
                 event="Capture checkpoint"
             )
 
-    def game_end_teardown(self):
-        self.battle_logger.end()
-        self.led_panel.on(cname=cfg.NEUTRAL_COLOR)
+    def refresh_cfg(self):
+        self.cfg.load_ext_cfg()
+
+    def game_setup(self):
+        self.button_pad.reset()
+        self.color = None
+        self.game_start = False
+        self.game_end = False
+        self.led_panel.on(cname=self.cfg.NEUTRAL_COLOR)
+        self.battle_logger = helpers.init_battlelogger()
+
+
+    def game_teardown(self):
+        self.led_panel.on(cname=self.cfg.NEUTRAL_COLOR)
         self.write_system_log("Game finished")
     
     async def run(self):
+        self.refresh_cfg()
+        self.game_setup()
         game_start = asyncio.create_task(self.wait_game_start())
         await game_start
         self.write_system_log("Game started")
         game_end = asyncio.create_task(self.wait_game_end())
         while not self.game_end:
             self.refresh_color()
-            yield
-        self.game_end_teardown()
+            await asyncio.sleep_ms(1)
+        self.game_teardown()

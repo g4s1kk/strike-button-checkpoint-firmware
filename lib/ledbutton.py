@@ -126,6 +126,11 @@ class ButtonPad:
                 button.was_pressed = 0
                 self._cname = color
                 return
+            
+    def reset(self):
+        self._cname = None
+        for button in self._buttons.values():
+            button.was_pressed = 0
 
     @property
     def rgb_color(self):
