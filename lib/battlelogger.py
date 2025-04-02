@@ -43,6 +43,7 @@ class BattleLogger:
         self.encoding = encoding
         self.device_id = device_id
         self.debug = debug
+        self.buf = list()
 
         self.record = LogRecord()
 
@@ -81,24 +82,28 @@ class BattleLogger:
             return dt.datetime.now(tz=self.tzinfo)
         else:
             return self.rtc_instance.datetime
+        
+    def write_to_buf(self, content):
+        self.buf.append(content)
 
-    def write_to_stdout(self, record):
+    def write_to_stdout(self, content):
         try:
-            sys.stdout.write(str(record) + self.line_terminator)
+            sys.stdout.write(content)
         except:
             if hasattr(sys.stdout, "flush"):
                 sys.stdout.flush()
 
-    def write(self, record, log_file):
+    def write_to_file(self, content, log_file):
         with open(log_file, self.mode, encoding=self.encoding) as f:
-            f.write(str(record) + self.line_terminator)
+            f.write(content)
 
     def emit(self, record):
+        content = str(record) + self.line_terminator
         if self.debug:
-            self.write_to_stdout(record)
-        self.write(record, self.log_file)
+            self.write_to_stdout(content)
+        self.write_to_buf(content)
         if self.ext_log_file is not None:
-            self.write(record, self.ext_log_file)
+            self.write_to_file(content, self.ext_log_file)
 
     def log(self, faction_id, event):
         self.record.set(
@@ -109,3 +114,8 @@ class BattleLogger:
 
         )
         self.emit(self.record)
+
+    def flush_buf(self):
+        with open(self.log_file, "w", encoding=self.encoding) as f:
+            for line in self.buf:
+                f.write(str(line) + self.line_terminator)

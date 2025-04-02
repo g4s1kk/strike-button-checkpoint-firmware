@@ -1,0 +1,3 @@
+flet==0.27.6
+mpremote==1.24.1
+mpy-cross==1.24.1

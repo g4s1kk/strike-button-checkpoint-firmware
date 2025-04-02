@@ -27,7 +27,7 @@ async def main(
     ):
     sync_time_task = asyncio.create_task(helpers.periodical_sync_machine_time())
     checkpoint_run_task = asyncio.create_task(checkpoint_app.run())
-    ws = asyncio.create_task(web_server.start_server())
+    ws = asyncio.create_task(web_server.start_server(port=cfg.WEB_PORT))
     repl = asyncio.create_task(aiorepl.task())
     tasks = [sync_time_task, checkpoint_run_task, ws, repl]  
     asyncio.gather(*tasks)

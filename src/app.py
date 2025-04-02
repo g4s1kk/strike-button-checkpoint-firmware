@@ -79,6 +79,7 @@ class CheckpointApp:
     def game_teardown(self):
         self.led_panel.on(cname=self.cfg.NEUTRAL_COLOR)
         self.write_system_log("Game finished")
+        self.battle_logger.flush_buf()
     
     async def run(self):
         self.refresh_cfg()
