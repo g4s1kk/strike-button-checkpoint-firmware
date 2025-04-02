@@ -84,4 +84,4 @@ def main(page: ft.Page):
     )
 
 # Собираем фронт в HTML (для Microdot)
-ft.app(target=main, view=None, port=webconf.WEB_PORT, export_path=webconf.WEB_MAIN_PATH)
+ft.app(target=main, view=None)

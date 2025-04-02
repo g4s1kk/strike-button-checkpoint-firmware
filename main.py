@@ -1,87 +1,70 @@
+import asyncio
+import aiorepl
+import micropython
 from machine import Timer
 
 import logging
 
-import config as cfg
-import helpers
+import src.app as app
+import src.helpers as helpers
+from src.config import config as cfg
+import src.webconf as webconf
+from src.webserver import web_server
 
 
 # setup
+micropython.alloc_emergency_exception_buf(100)
+
 logger = logging.getLogger(cfg.DEVICE_ID)
 helpers.sync_machine_time()
 
+
+# SPLIT LOG BACKUPS TASK AND RTC SYNC TASK, SYNC IT WITH MAIN LOOP
+# FINISH BACKUPS TASK ON GAME END (MAYBE RUN IT INSIDE GAME RUN LOOP)
+
+async def main(
+        checkpoint_app:app.CheckpointApp,
+        web_server
+    ):
+    sync_time_task = asyncio.create_task(helpers.periodical_sync_machine_time())
+    checkpoint_app.checkpoint_run_task = asyncio.create_task(checkpoint_app.run())
+    ws = asyncio.create_task(
+        web_server.start_server(
+            host=webconf.BACKEND_IP_ADDR,
+            port=webconf.WEB_PORT
+        )
+    )
+    repl = asyncio.create_task(aiorepl.task())
+    tasks = [
+        sync_time_task,
+        checkpoint_app.checkpoint_run_task,
+        ws,
+        repl
+    ]  
+    asyncio.gather(*tasks)
+
 try:
     debounce_timer = Timer(cfg.BUTTONS_DEBOUNCE_TIMER_ID)
-    helpers.make_wlan()
+    station = helpers.make_wlan()
 
-    led_panel = helpers.attach_led()
-    button_pad = helpers.attach_buttons(debounce_timer)
-    battle_logger = helpers.init_battlelogger()
-
-    current_faction = button_pad._cname
-    logger.info(f"Button pad initial state: {current_faction}")
-    led_panel.on()
-    game_start = False
-    game_end = False
-    stop_game_flag = False
-    start_game_flag = False
+    checkpoint_app = app.CheckpointApp(
+        debounce_timer=debounce_timer
+    )
+    
+    web_server.add_checkpoint_app_link(checkpoint_app)
 
     logger.info("Main module init finished")
 
-    # game waiting loop
-    with helpers.PeriodicExecutor(period_seconds=600, timer_id=0) as cron_600:
-        with helpers.PeriodicExecutor(period_seconds=60, timer_id=1) as cron_60:
-            logger.info("Game start pending")
-            battle_logger.log(
-                faction_id="SYSTEM",
-                event="Game start pending"
-            )
-            while not game_start:
-                cron_600.execute_if_alarm(
-                    helpers.sync_machine_time
-                )
-                results = cron_60.execute_if_alarm(
-                    helpers.check_game_start
-                )
-                game_start = results[0] or start_game_flag
-
-    # game loop
-    with helpers.PeriodicExecutor(cfg.BATTLELOG_BACKUP_PERIOD, timer_id=0) as cron_600:
-        with helpers.PeriodicExecutor(period_seconds=60, timer_id=1) as cron_60:
-            logger.info("Game started")
-            battle_logger.log(
-                faction_id="SYSTEM",
-                event="Game started"
-            )
-            while not game_end:
-                cron_600.execute_if_alarm(
-                    battle_logger.save_backup,
-                    helpers.sync_machine_time
-                )
-                results = cron_60.execute_if_alarm(
-                    helpers.check_game_end
-                )
-                game_end = results[0] or stop_game_flag
-                button_pad.check_pressed()
-                if button_pad._cname != current_faction:
-                    current_faction = button_pad._cname
-                    logger.info(f"Button pad state changed: {current_faction}")
-                    led_panel.on(rgb=button_pad.color)
-                    battle_logger.log(
-                        faction_id=current_faction.upper(),
-                        event="Capture checkpoint"
-                    )
-
-    # teardown
-    battle_logger.end()
-    led_panel.on(cname=cfg.NEUTRAL_COLOR)
-    logger.info("Game finished")
-    battle_logger.log(
-        faction_id="SYSTEM",
-        event="Game finished"
+    asyncio.run(
+        main(
+            checkpoint_app,
+            web_server
+        )
     )
+
 except Exception as e:
     logger.exception(e)
     raise
+
 finally:
     debounce_timer.deinit()
