@@ -36,6 +36,8 @@ class Config:
     WEB_STATIC_FOLDER = "/static"
     WEB_MAIN_FILE = "index.html"
     WEB_PORT = 8000
+    WEB_DOWNLOAD_LOG_ENDPOINT = "battle_log"
+    BACKEND_IP_ADDR = "192.168.0.10"
 
     LOG_LEVEL = logging.INFO
     DEBUG = True

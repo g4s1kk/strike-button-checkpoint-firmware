@@ -19,10 +19,11 @@ class CheckpointApp:
         self.battle_logger = None
         self.setup_hardware()
         self.led_panel.on()
-        self.color = None
+        self.color = cfg.NEUTRAL_COLOR
         self.logger.info(f"Button pad initial state: {self.color}")
         self.game_start = False
         self.game_end = False
+        self.run_task = None
         self.logger.info("Checkpoint app init finished")
 
     def setup_hardware(self):
@@ -69,7 +70,7 @@ class CheckpointApp:
 
     def game_setup(self):
         self.button_pad.reset()
-        self.color = None
+        self.color = self.cfg.NEUTRAL_COLOR
         self.game_start = False
         self.game_end = False
         self.led_panel.on(cname=self.cfg.NEUTRAL_COLOR)

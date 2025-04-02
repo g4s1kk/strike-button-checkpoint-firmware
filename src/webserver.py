@@ -1,4 +1,8 @@
+import machine
+
+import asyncio
 import os.path
+import json
 
 from microdot import Microdot, send_file
 from microdot.websocket import with_websocket
@@ -26,6 +30,9 @@ class WebServer(Microdot):
         if self.checkpoint_app is not None:
             battle_logger = self.checkpoint_app.battle_logger
             return battle_logger.buf
+        
+    def get_voltage(self):
+        return 3.3
         
     @property
     def battlelog_file(self) -> str|None:
@@ -59,7 +66,7 @@ def send_assets(request, path):
     )
 
 
-@web_server.get("/battle_log")
+@web_server.get(f"/{config.WEB_DOWNLOAD_LOG_ENDPOINT}")
 def download_battle_log(request):
     self = request.app
     return send_file(
@@ -70,9 +77,47 @@ def download_battle_log(request):
 @web_server.route("/ws")
 @with_websocket
 async def handle_ws(request, ws):
+    self = request.app
     while True:
         data = await ws.receive()
+        resp = None
         if data:
-            action = json.loads(data).get("action")
+            parsed = json.loads(data)
+            action = parsed.get("action")
+            if action == "get_report":
+                resp = json.dumps(
+                    self.get_battle_log_current_content()
+                )
             if action == "upload_config":
-                await ws.send("config")
+                cfg_data = parsed.get("content")
+                try:
+                    with open(self.cfg.external_cfg_path, "w") as f:
+                        f.write(cfg_data)
+                    self.cfg.load_ext_cfg()
+                    resp = "Config upload success"
+                except Exception as e:
+                    resp = str(e)
+            if action == "start_game":
+                checkpoint_app = self.checkpoint_app
+                if checkpoint_app.game_start and not checkpoint_app.game_end:
+                    resp = "Permission error: game already in progress"
+                else:
+                    if isinstance(checkpoint_app.checkpoint_run_task, asyncio.Task):
+                        await checkpoint_app.checkpoint_run_task.cancel()
+                    checkpoint_app.checkpoint_run_task = asyncio.create_task(checkpoint_app.run())
+                    resp = "Game task recreated"
+            if action == "get_status":
+                checkpoint_app = self.checkpoint_app
+                result = {
+                    "COLOR": checkpoint_app.color,
+                    "LOG_PATH": checkpoint_app.battle_logger.ext_log_file,
+                    "GAME_STARTED": checkpoint_app.game_start,
+                    "GAME_FINISHED": checkpoint_app.game_end,
+                    "BATTERY_VOLTAGE": self.get_voltage()
+                }
+                resp = json.dumps(result)
+            if action == "reboot":
+                await ws.send("Shutting down")
+                machine.reset()
+            if resp is not None:
+                await ws.send(resp)

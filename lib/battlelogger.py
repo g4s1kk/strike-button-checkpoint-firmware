@@ -3,8 +3,6 @@ import os
 import sys
 import datetime as dt
 
-import upysh
-
 
 class LogRecord:
     fmt = "{dttm}|{device_id}|{faction_id}|{event}"
@@ -21,6 +19,19 @@ class LogRecord:
             device_id=self.device_id,
             faction_id=self.faction_id,
             event=self.event
+        )
+    
+    def dump(self):
+        return {
+            "dttm": self.dttm.isoformat(),
+            "device_id": self.device_id,
+            "faction_id": self.faction_id,
+            "event": self.event
+        }
+    
+    def dump_json(self):
+        return json.dumps(
+            self.dump()
         )
 
 
@@ -83,8 +94,8 @@ class BattleLogger:
         else:
             return self.rtc_instance.datetime
         
-    def write_to_buf(self, content):
-        self.buf.append(content)
+    def write_to_buf(self, record_dump):
+        self.buf.append(record_dump)
 
     def write_to_stdout(self, content):
         try:
@@ -101,7 +112,7 @@ class BattleLogger:
         content = str(record) + self.line_terminator
         if self.debug:
             self.write_to_stdout(content)
-        self.write_to_buf(content)
+        self.write_to_buf(record.dump())
         if self.ext_log_file is not None:
             self.write_to_file(content, self.ext_log_file)
 
@@ -117,5 +128,8 @@ class BattleLogger:
 
     def flush_buf(self):
         with open(self.log_file, "w", encoding=self.encoding) as f:
-            for line in self.buf:
-                f.write(str(line) + self.line_terminator)
+            f.write(
+                json.dumps(
+                    self.buf
+                )
+            )
