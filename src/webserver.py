@@ -47,24 +47,24 @@ web_server.add_cfg_link(config)
 
 # add handlers here
 
-@web_server.get("/")
-def send_index(request):
-    self = request.app
-    return send_file(
-        webconf.WEB_MAIN_PATH
-    )
+# @web_server.get("/")
+# def send_index(request):
+#     self = request.app
+#     return send_file(
+#         webconf.WEB_MAIN_PATH
+#     )
 
 
-@web_server.get("/assets/<path:path>")
-def send_assets(request, path):
-    self = request.app
-    return send_file(
-        os.path.join(
-            webconf.WEB_STATIC_FOLDER,
-            "assets",
-            path
-        )
-    )
+# @web_server.get("/assets/<path:path>")
+# def send_assets(request, path):
+#     self = request.app
+#     return send_file(
+#         os.path.join(
+#             webconf.WEB_STATIC_FOLDER,
+#             "assets",
+#             path
+#         )
+#     )
 
 
 @web_server.get(f"/{webconf.WEB_DOWNLOAD_LOG_ENDPOINT}")
