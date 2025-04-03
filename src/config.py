@@ -79,6 +79,7 @@ class Config:
         self.game_end_dttm = dt.datetime.\
             fromisoformat(self.GAME_END_DTTM).\
             astimezone(self.game_timezone)
+        self.DEVICE_HOSTNAME = self.DEVICE_ID + ".local"
 
     def setup_logger(self):
         INT_LOG_FILE = os.path.join(self.APP_ROOT_PATH, self.LOG_FILENAME)

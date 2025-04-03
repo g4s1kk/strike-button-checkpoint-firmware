@@ -26,6 +26,7 @@ async def periodical_sync_machine_time():
 
 
 def make_wlan():
+    network.hostname(cfg.DEVICE_HOSTNAME)
     station = network.WLAN(network.AP_IF)
     station.active(True)
     station.config(
