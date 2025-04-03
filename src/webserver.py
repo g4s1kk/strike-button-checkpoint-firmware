@@ -120,5 +120,8 @@ async def handle_ws(request, ws):
             if action == "reboot":
                 await ws.send("Shutting down")
                 machine.reset()
+            if action == "echo":
+                msg_data = parsed.get("content")
+                await ws.send(msg_data)
             if resp is not None:
                 await ws.send(resp)
